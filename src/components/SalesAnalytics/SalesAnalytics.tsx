@@ -282,8 +282,8 @@ export const SalesAnalytics = () => {
             Sperren
           </button>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <div className="flex gap-2">
+        <div className="flex flex-col w-full sm:w-auto gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
             <button
               onClick={() => setTimeFilter('today')}
               className={`px-4 py-2 rounded-lg ${

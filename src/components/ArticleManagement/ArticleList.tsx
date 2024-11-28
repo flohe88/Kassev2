@@ -28,6 +28,10 @@ export const ArticleList = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
   const [selectedPriceArticle, setSelectedPriceArticle] = useState<Article | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteArticleId, setDeleteArticleId] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -90,23 +94,37 @@ export const ArticleList = () => {
     dispatch(addItem({ ...article, price }));
   };
 
-  const handleDeleteArticle = async (articleId: string, event: React.MouseEvent) => {
+  const handleDeleteClick = (articleId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
-    if (window.confirm('Möchten Sie diesen Artikel wirklich löschen?')) {
-      try {
-        const { error } = await supabase
-          .from('articles')
-          .delete()
-          .eq('id', articleId);
+    setDeleteArticleId(articleId);
+    setShowDeleteConfirm(true);
+    setDeletePassword('');
+    setDeleteError(false);
+  };
 
-        if (error) throw error;
-        
-        // Artikel wird automatisch durch den Realtime-Listener aktualisiert
-      } catch (error) {
-        console.error('Fehler beim Löschen des Artikels:', error);
-        alert('Fehler beim Löschen des Artikels');
-      }
+  const handleDeleteConfirm = async () => {
+    if (deletePassword !== '123456') {
+      setDeleteError(true);
+      return;
+    }
+
+    if (!deleteArticleId) return;
+
+    try {
+      const { error } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', deleteArticleId);
+
+      if (error) throw error;
+      
+      setShowDeleteConfirm(false);
+      setDeleteArticleId(null);
+      setDeletePassword('');
+      // Artikel wird automatisch durch den Realtime-Listener aktualisiert
+    } catch (error) {
+      console.error('Fehler beim Löschen des Artikels:', error);
+      alert('Fehler beim Löschen des Artikels');
     }
   };
 
@@ -148,7 +166,7 @@ export const ArticleList = () => {
             <div 
               key={article.id} 
               className="p-4 border rounded-lg shadow-sm hover:shadow-md cursor-pointer 
-                       transition-shadow duration-200 bg-white relative group"
+                       transition-shadow duration-200 bg-white relative"
               onClick={() => handleArticleClick(article)}
             >
               <div className="flex justify-between items-start mb-2">
@@ -163,9 +181,8 @@ export const ArticleList = () => {
               </div>
               
               <button
-                onClick={(e) => handleDeleteArticle(article.id, e)}
-                className="absolute bottom-2 right-2 p-2 text-red-600 opacity-0 
-                         group-hover:opacity-100 transition-opacity duration-200
+                onClick={(e) => handleDeleteClick(article.id, e)}
+                className="absolute bottom-2 right-2 p-2 text-red-600
                          hover:bg-red-50 rounded-full"
                 title="Artikel löschen"
               >
@@ -196,6 +213,45 @@ export const ArticleList = () => {
           }}
           onCancel={() => setIsFormOpen(false)}
         />
+      </Modal>
+
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Artikel löschen"
+      >
+        <div className="space-y-4">
+          <p>Bitte geben Sie das Passwort ein, um den Artikel zu löschen.</p>
+          <input
+            type="password"
+            value={deletePassword}
+            onChange={(e) => {
+              setDeletePassword(e.target.value);
+              setDeleteError(false);
+            }}
+            className={`w-full px-4 py-2 border rounded-lg ${
+              deleteError ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Passwort eingeben"
+          />
+          {deleteError && (
+            <p className="text-red-500 text-sm">Falsches Passwort</p>
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Abbrechen
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Löschen
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

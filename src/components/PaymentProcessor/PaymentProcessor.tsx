@@ -123,12 +123,20 @@ export const PaymentProcessor = () => {
           <span className="text-lg font-medium">Erhaltener Betrag:</span>
           <button
             onClick={() => setShowNumpad(true)}
-            className="w-full py-4 px-6 border-2 border-dashed border-gray-300 rounded-lg 
-                     hover:border-blue-500 hover:bg-blue-50/50 transition-all duration-200 
-                     text-2xl font-bold text-blue-600 flex items-center justify-between"
+            className={`w-full py-4 px-6 border-2 rounded-lg 
+                     transition-all duration-200 text-2xl font-bold 
+                     flex items-center justify-between
+                     ${receivedAmount === 0 
+                       ? 'border-red-500 hover:border-red-600 hover:bg-red-50/50' 
+                       : 'border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50/50'
+                     }`}
           >
-            <span className="text-gray-400 text-base">Klicken zum Eingeben</span>
-            <span>{displayValue} €</span>
+            <span className={`text-base ${receivedAmount === 0 ? 'text-red-500' : 'text-gray-400'}`}>
+              Klicken zum Eingeben
+            </span>
+            <span className={receivedAmount === 0 ? 'text-red-500' : 'text-blue-600'}>
+              {displayValue} €
+            </span>
           </button>
         </div>
 
@@ -140,6 +148,7 @@ export const PaymentProcessor = () => {
         </div>
 
         <button
+          id="complete-sale-button"
           onClick={handleCompleteSale}
           disabled={!canComplete || processing}
           className={`w-full p-3 rounded-lg font-medium

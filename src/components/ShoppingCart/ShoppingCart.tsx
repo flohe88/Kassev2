@@ -7,7 +7,7 @@ export const ShoppingCart = () => {
   const { items, total } = useSelector((state: RootState) => state.cart);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border">
+    <div id="shopping-cart" className="bg-white p-4 rounded-lg shadow-sm border">
       <h2 className="text-2xl font-bold mb-4">Warenkorb</h2>
       
       {items.length === 0 ? (
