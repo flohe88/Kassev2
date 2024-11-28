@@ -29,6 +29,8 @@ export const SalesAnalytics = () => {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [startDate] = useState(new Date());
+  const [endDate] = useState(new Date());
 
   useEffect(() => {
     fetchSales();

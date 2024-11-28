@@ -20,7 +20,7 @@ export interface Sale {
   change_given: number;
   payment_method: string;
   created_at: string;
-  items: SaleItem[];
+  sale_items?: SaleItem[];
 }
 
 export interface SaleItem {
