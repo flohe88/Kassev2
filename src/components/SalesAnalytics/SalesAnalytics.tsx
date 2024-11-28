@@ -388,52 +388,50 @@ export const SalesAnalytics = () => {
             <tr>
               <th className="text-left py-3 px-4 rounded-tl-lg">Datum</th>
               <th className="text-left py-3 px-4">Uhrzeit</th>
-              <th className="text-left py-3 px-4">Artikel (Kategorie)</th>
+              <th className="text-left py-3 px-4">Artikel</th>
+              <th className="text-left py-3 px-4">Kategorie</th>
               <th className="text-right py-3 px-4">Betrag</th>
-              <th className="text-right py-3 px-4 rounded-tr-lg">Rückgeld</th>
+              <th className="text-right py-3 px-4 rounded-tr-lg">Aktion</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-pos-accent/10">
-            {sales.map((sale) => (
-              <tr key={sale.id} className="hover:bg-pos-primary/50 transition-colors duration-150">
-                <td className="py-3 px-4">
-                  {formatDate(sale.created_at)}
-                </td>
-                <td className="py-3 px-4">
-                  {formatTime(sale.created_at)}
-                </td>
-                <td className="py-3 px-4">
-                  {sale.sale_items?.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-1 group">
-                      <div className="flex-1">
-                        <span className="text-pos-text">
-                          {item.article?.name}
-                        </span>
-                        {item.article?.categories?.name && (
-                          <span className="text-pos-accent ml-2">
-                            ({item.article.categories.name})
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleDeleteSaleItem(sale.id, item.id, item.price_at_sale)}
-                        className="ml-2 text-red-600 hover:bg-red-50 p-1.5 rounded-full
-                                 transition-all duration-200"
-                        title="Artikel löschen"
-                      >
-                        <MdDelete size={20} />
-                      </button>
-                    </div>
-                  ))}
-                </td>
-                <td className="text-right py-3 px-4 text-pos-accent">
-                  {sale.total.toFixed(2)} €
-                </td>
-                <td className="text-right py-3 px-4 text-pos-success">
-                  {sale.change_given.toFixed(2)} €
-                </td>
-              </tr>
-            ))}
+            {sales.flatMap((sale) => 
+              sale.sale_items?.map((item) => (
+                <tr key={item.id} className="hover:bg-pos-primary/50 transition-colors duration-150">
+                  <td className="py-3 px-4">
+                    {formatDate(sale.created_at)}
+                  </td>
+                  <td className="py-3 px-4">
+                    {formatTime(sale.created_at)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="text-pos-text">
+                      {item.article?.name}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    {item.article?.categories?.name && (
+                      <span className="text-pos-accent">
+                        {item.article.categories.name}
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-right py-3 px-4 text-pos-accent">
+                    {item.price_at_sale.toFixed(2)} €
+                  </td>
+                  <td className="text-right py-3 px-4">
+                    <button
+                      onClick={() => handleDeleteSaleItem(sale.id, item.id, item.price_at_sale)}
+                      className="text-red-600 hover:bg-red-50 p-1.5 rounded-full
+                               transition-all duration-200"
+                      title="Artikel löschen"
+                    >
+                      <MdDelete size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
