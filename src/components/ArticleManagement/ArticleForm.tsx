@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Article, Category } from '../../types';
-import { MdAdd } from 'react-icons/md';
+import { Article, Category, ProductVariant } from '../../types';
+import { MdAdd, MdDelete } from 'react-icons/md';
 
 interface ArticleFormProps {
   article?: Article;
@@ -17,6 +17,7 @@ export const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps) => 
   const [saving, setSaving] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [variants, setVariants] = useState<ProductVariant[]>(article?.variants || []);
 
   useEffect(() => {
     fetchCategories();
@@ -58,6 +59,24 @@ export const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps) => 
     }
   };
 
+  const handleAddVariant = () => {
+    setVariants([...variants, { name: '', price: 0 }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const handleVariantChange = (index: number, field: 'name' | 'price', value: string) => {
+    const newVariants = [...variants];
+    if (field === 'price') {
+      newVariants[index][field] = parseFloat(value) || 0;
+    } else {
+      newVariants[index][field] = value;
+    }
+    setVariants(newVariants);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -69,6 +88,8 @@ export const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps) => 
         category_id: categoryId || null
       };
 
+      let articleId = article?.id;
+
       if (article?.id) {
         const { error } = await supabase
           .from('articles')
@@ -77,11 +98,37 @@ export const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps) => 
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('articles')
-          .insert([articleData]);
+          .insert([articleData])
+          .select()
+          .single();
 
         if (error) throw error;
+        articleId = data.id;
+      }
+
+      if (articleId) {
+        const { error: deleteError } = await supabase
+          .from('product_variants')
+          .delete()
+          .eq('article_id', articleId);
+
+        if (deleteError) throw deleteError;
+
+        if (variants.length > 0) {
+          const variantsData = variants.map(variant => ({
+            article_id: articleId,
+            name: variant.name,
+            price: variant.price
+          }));
+
+          const { error: variantsError } = await supabase
+            .from('product_variants')
+            .insert(variantsData);
+
+          if (variantsError) throw variantsError;
+        }
       }
 
       onSave();
@@ -169,6 +216,55 @@ export const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps) => 
           </div>
         </div>
       )}
+
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <label className="block text-sm font-medium">Produktvarianten</label>
+          <button
+            type="button"
+            onClick={handleAddVariant}
+            className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-1"
+          >
+            <MdAdd /> Variante hinzufügen
+          </button>
+        </div>
+        
+        {variants.map((variant, index) => (
+          <div key={index} className="flex gap-2 items-start p-4 border rounded-lg bg-gray-50">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={variant.name}
+                onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
+                placeholder="Variantenname"
+                className="w-full px-3 py-2 border rounded-lg mb-2"
+                required
+              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  value={variant.price}
+                  onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
+                  step="0.01"
+                  min="0"
+                  placeholder="Preis"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                />
+                <span className="text-gray-500">€</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleRemoveVariant(index)}
+              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+              title="Variante entfernen"
+            >
+              <MdDelete size={20} />
+            </button>
+          </div>
+        ))}
+      </div>
 
       <div className="flex justify-end space-x-2 pt-4">
         <button

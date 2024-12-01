@@ -1,3 +1,9 @@
+export interface ProductVariant {
+  id?: string;
+  name: string;
+  price: number;
+}
+
 export interface Article {
   id: string;
   name: string;
@@ -5,6 +11,7 @@ export interface Article {
   price: number | null;
   created_at: string;
   categories?: Category;
+  variants?: ProductVariant[];
 }
 
 export interface Category {

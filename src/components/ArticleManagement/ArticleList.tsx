@@ -32,6 +32,7 @@ export const ArticleList = () => {
   const [deleteArticleId, setDeleteArticleId] = useState<string | null>(null);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState(false);
+  const [selectedVariantArticle, setSelectedVariantArticle] = useState<Article | null>(null);
 
   useEffect(() => {
     fetchArticles();
@@ -55,7 +56,11 @@ export const ArticleList = () => {
     try {
       let query = supabase
         .from('articles')
-        .select('*, categories(*)')
+        .select(`
+          *,
+          categories(*),
+          variants:product_variants(*)
+        `)
         .order('name');
 
       if (selectedCategory) {
@@ -82,12 +87,23 @@ export const ArticleList = () => {
     setIsFormOpen(true);
   };
 
-  const handleArticleClick = (article: Article) => {
-    if (article.price === null) {
+  const handleArticleClick = async (article: Article) => {
+    if (article.variants && article.variants.length > 0) {
+      setSelectedVariantArticle(article);
+    } else if (article.price === null) {
       setSelectedPriceArticle(article);
     } else {
       dispatch(addItem(article));
     }
+  };
+
+  const handleVariantSelect = (article: Article, variant: ProductVariant) => {
+    dispatch(addItem({
+      ...article,
+      name: `${article.name} - ${variant.name}`,
+      price: variant.price
+    }));
+    setSelectedVariantArticle(null);
   };
 
   const handlePriceSave = (article: Article, price: number) => {
@@ -251,6 +267,28 @@ export const ArticleList = () => {
               Löschen
             </button>
           </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!selectedVariantArticle}
+        onClose={() => setSelectedVariantArticle(null)}
+        title="Variante auswählen"
+      >
+        <div className="space-y-4">
+          {selectedVariantArticle?.variants?.map((variant) => (
+            <button
+              key={variant.id}
+              onClick={() => handleVariantSelect(selectedVariantArticle, variant)}
+              className="w-full p-4 text-left border rounded-lg hover:bg-gray-50 
+                       transition-colors duration-150 space-y-1"
+            >
+              <div className="font-bold text-lg">{variant.name}</div>
+              <div className="text-blue-600 font-semibold">
+                {variant.price.toFixed(2)} €
+              </div>
+            </button>
+          ))}
         </div>
       </Modal>
     </div>
