@@ -90,9 +90,9 @@ const isMobile = () => {
 // Multi-Backend Setup
 const DndProviderWithBackend = ({ children }: { children: React.ReactNode }) => {
   const backend = isMobile() ? TouchBackend({
-    enableMouseEvents: true,
-    delay: 500, // 500ms Verzögerung für Touch-Geräte
-    delayTouchStart: 500, // Auch für Touch-Events
+    delay: 500,
+    delayTouchStart: 500,
+    touchSlop: 20
   }) : HTML5Backend;
   
   return (
