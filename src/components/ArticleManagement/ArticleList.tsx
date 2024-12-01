@@ -145,7 +145,8 @@ export const ArticleList = () => {
           categories(*),
           variants:product_variants(*)
         `)
-        .order('name');
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true });
 
       if (selectedCategory) {
         query = query.eq('category_id', selectedCategory);
@@ -159,6 +160,7 @@ export const ArticleList = () => {
 
       if (error) throw error;
       setArticles(data || []);
+      setOrderedArticles(data || []);
     } catch (error) {
       console.error('Fehler beim Laden der Artikel:', error);
     } finally {
@@ -228,12 +230,35 @@ export const ArticleList = () => {
     }
   };
 
-  const moveCard = (dragIndex: number, hoverIndex: number) => {
+  const moveCard = async (dragIndex: number, hoverIndex: number) => {
     const newCards = [...orderedArticles];
     const dragCard = newCards[dragIndex];
     newCards.splice(dragIndex, 1);
     newCards.splice(hoverIndex, 0, dragCard);
     setOrderedArticles(newCards);
+
+    try {
+      // Aktualisiere die sort_order für alle Artikel
+      const updates = newCards.map((article, index) => ({
+        id: article.id,
+        name: article.name,
+        price: article.price,
+        category_id: article.category_id,
+        sort_order: index * 10
+      }));
+
+      const { error } = await supabase
+        .from('articles')
+        .upsert(updates, { 
+          onConflict: 'id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Fehler beim Speichern der Reihenfolge:', error);
+      // Bei einem Fehler die ursprüngliche Reihenfolge wiederherstellen
+      setOrderedArticles([...articles]);
+    }
   };
 
   if (loading) return <div>Laden...</div>;
