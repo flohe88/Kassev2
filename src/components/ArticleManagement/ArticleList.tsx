@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { supabase } from '../../lib/supabaseClient';
 import { Article, ProductVariant } from '../../types';
 import { useDispatch } from 'react-redux';
@@ -78,6 +79,22 @@ const DraggableArticleCard = ({ article, index, moveCard, onArticleClick, onDele
         <MdDelete className="text-xl" />
       </button>
     </div>
+  );
+};
+
+// Funktion zur Erkennung des Gerätetyps
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// Multi-Backend Setup
+const DndProviderWithBackend = ({ children }: { children: React.ReactNode }) => {
+  const backend = isMobile() ? TouchBackend : HTML5Backend;
+  
+  return (
+    <DndProvider backend={backend}>
+      {children}
+    </DndProvider>
   );
 };
 
@@ -222,7 +239,7 @@ export const ArticleList = () => {
   if (loading) return <div>Laden...</div>;
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProviderWithBackend>
       <div>
         <div className="mb-4">
           <div className="flex gap-2 items-center mb-4">
@@ -346,6 +363,6 @@ export const ArticleList = () => {
           </div>
         </Modal>
       </div>
-    </DndProvider>
+    </DndProviderWithBackend>
   );
 }; 
