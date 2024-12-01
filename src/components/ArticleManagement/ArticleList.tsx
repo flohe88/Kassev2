@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Article } from '../../types';
+import { Article, ProductVariant } from '../../types';
 import { useDispatch } from 'react-redux';
 import { addItem } from '../../store/cartSlice';
 import { CategoryFilter } from './CategoryFilter';
